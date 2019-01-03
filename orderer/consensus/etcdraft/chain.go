@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/pem"
 	"fmt"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -249,6 +250,7 @@ func (c *Chain) Start() {
 
 // Order submits normal type transactions for ordering.
 func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
+	fmt.Println("接收到排序请求")
 	return c.Submit(&orderer.SubmitRequest{LastValidationSeq: configSeq, Content: env, Channel: c.channelID}, 0)
 }
 
@@ -387,7 +389,9 @@ func (c *Chain) Submit(req *orderer.SubmitRequest, sender uint64) error {
 		return errors.Errorf("no Raft leader")
 	}
 
+	fmt.Println("lead节点："+ strconv.Itoa(int(lead)) )
 	if lead == c.raftID {
+		fmt.Println("我是lead节点" )
 		select {
 		case c.submitC <- req:
 			return nil
@@ -399,10 +403,12 @@ func (c *Chain) Submit(req *orderer.SubmitRequest, sender uint64) error {
 	c.logger.Debugf("Forwarding submit request to Raft leader %d", lead)
 	c.submitLock.Lock()
 	defer c.submitLock.Unlock()
+	fmt.Println("发送到lead节点")
 	return c.rpc.SendSubmit(lead, req)
 }
 
 func (c *Chain) serveRequest() {
+
 	ticking := false
 	timer := c.clock.NewTimer(time.Second)
 	// we need a stopped timer rather than nil,
@@ -439,6 +445,7 @@ func (c *Chain) serveRequest() {
 	for {
 		select {
 		case msg := <-c.submitC:
+			fmt.Println("submit ")
 			batches, pending, err := c.ordered(msg)
 			if err != nil {
 				c.logger.Errorf("Failed to order message: %s", err)
@@ -454,6 +461,7 @@ func (c *Chain) serveRequest() {
 			}
 
 		case b := <-c.commitC:
+			fmt.Println("commit ")
 			c.writeBlock(b)
 
 		case <-c.resignC:
@@ -638,7 +646,6 @@ func (c *Chain) serveRaft() {
 				c.confState = rd.Snapshot.Metadata.ConfState
 				c.appliedIndex = rd.Snapshot.Metadata.Index
 			}
-
 			c.apply(rd.CommittedEntries)
 			c.node.Advance()
 
@@ -722,7 +729,7 @@ func (c *Chain) apply(ents []raftpb.Entry) {
 				// and has updates for raft replica set
 				c.configChangeInProgress = true
 			}
-
+			fmt.Println("EntryNormal。。。")
 			c.commitC <- block{b, ents[i].Index}
 
 			appliedb = b.Header.Number

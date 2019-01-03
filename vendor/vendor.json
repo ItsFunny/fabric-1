@@ -1,0 +1,534 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "oQgLy8KmIOVov04WXH7KgU1bszc=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/btcsuite/btcutil/base58",
+			"path": "github.com/btcsuite/btcutil/base58",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "DDCHfqSgDgq1nRapQQRoMtzgJN4=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/fortytw2/leaktest",
+			"path": "github.com/fortytw2/leaktest",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "t7aTpDH0h4BZcGU0KkUr14QQG2w=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/go-kit/kit/log/level",
+			"path": "github.com/go-kit/kit/log/level",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "g8QJZeWwOsnMZfpe0zimGKouPlw=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/go-kit/kit/log/term",
+			"path": "github.com/go-kit/kit/log/term",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "d8fWExWJdnsxbPsPuInREvkTvdE=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/go-kit/kit/metrics/discard",
+			"path": "github.com/go-kit/kit/metrics/discard",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "nDdhX1iBJuMhtp//Z9B7C2srOAE=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/gogo/protobuf/jsonpb",
+			"path": "github.com/gogo/protobuf/jsonpb",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "HPVQZu059/Rfw2bAWM538bVTcUc=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/gogo/protobuf/sortkeys",
+			"path": "github.com/gogo/protobuf/sortkeys",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "8+7Pli2T4Tt7NNSUstW5bV/Zm3w=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/gogo/protobuf/types",
+			"path": "github.com/gogo/protobuf/types",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "hEnH6sgR83Qfx7UNnphNNlelmj0=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/gorilla/websocket",
+			"path": "github.com/gorilla/websocket",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "iMD8udYqqFMbeCHGhd/8AgdKCSE=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/jmhodges/levigo",
+			"path": "github.com/jmhodges/levigo",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "wJzzub/0w2espYvar3lylwHXBAk=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/prometheus/client_golang/prometheus/promhttp",
+			"path": "github.com/prometheus/client_golang/prometheus/promhttp",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "dTSETLqmJ1OXyuy7kOfwg71w4fQ=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/rs/cors",
+			"path": "github.com/rs/cors",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "opxoO6etJz93d4n1MG7IdkmbgTk=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/tendermint/btcd/btcec",
+			"path": "github.com/tendermint/btcd/btcec",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "KTTzwVXy5lU4fSoQcFNWvnFnUPo=",
+			"origin": "github.com/tendermint/tendermint/vendor/github.com/tendermint/go-amino",
+			"path": "github.com/tendermint/go-amino",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "K4x+zBENl0/zO0SP+DLItbkAeYQ=",
+			"path": "github.com/tendermint/tendermint/abci/client",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "fMRWy3cdZeikN40Vpont+nDD5rA=",
+			"path": "github.com/tendermint/tendermint/abci/example/code",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "QYnDqvxzOojMKWeAsgrbz/fL/6c=",
+			"path": "github.com/tendermint/tendermint/abci/example/counter",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "mb0T9fWeyzU5ZBhgAsiNiHbzUtE=",
+			"path": "github.com/tendermint/tendermint/abci/example/kvstore",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "UZCLkqiAowvqhwfjqsJub+3ZMOM=",
+			"path": "github.com/tendermint/tendermint/abci/server",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "LkdV9bOcrGW+REjaO6TvdeRtKPI=",
+			"path": "github.com/tendermint/tendermint/abci/types",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "+cDkULZJMXwbUsANytFpcQXaBo4=",
+			"path": "github.com/tendermint/tendermint/blockchain",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "swKDWxmQZftpl4w6HTjt0+euPOQ=",
+			"path": "github.com/tendermint/tendermint/config",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "gEgi3zV7CgKit6qRwrPjXV90KGg=",
+			"path": "github.com/tendermint/tendermint/consensus",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "JSm1zfuJ8MeU1kI1Gn24pv0bRGA=",
+			"path": "github.com/tendermint/tendermint/consensus/types",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "7kmawUpYsLekGHoHAJ03PcXwFL8=",
+			"path": "github.com/tendermint/tendermint/crypto",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "EOsz51QFgleSe85BOmrDhOjv9wQ=",
+			"path": "github.com/tendermint/tendermint/crypto/ed25519",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "WF0I35CUMlViTiW/BiAB0w6QChU=",
+			"path": "github.com/tendermint/tendermint/crypto/encoding/amino",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "UVBvdkHnfS3wbZeNdvX4Hm0KrPA=",
+			"path": "github.com/tendermint/tendermint/crypto/internal/benchmarking",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "8zI2ViKt0gskLQm8xzczCDfj8o4=",
+			"path": "github.com/tendermint/tendermint/crypto/merkle",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "57e+3ulxBRBSu0WvwI8UBm3R7vQ=",
+			"path": "github.com/tendermint/tendermint/crypto/multisig",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "A8XYpqEHtVX2+HpEfTWaRKnrJFU=",
+			"path": "github.com/tendermint/tendermint/crypto/multisig/bitarray",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "7S8OtwGUZv0P/rkOdgrIZBzC76A=",
+			"path": "github.com/tendermint/tendermint/crypto/secp256k1",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "MS5yJsRjxza9brnFdB2x36Ek2SA=",
+			"path": "github.com/tendermint/tendermint/crypto/tmhash",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "SzQ7Tv+qauI+zf9o00orX0XeN1U=",
+			"path": "github.com/tendermint/tendermint/evidence",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "BaLRUQZJeONtYG1DCd8M1bbgdjU=",
+			"path": "github.com/tendermint/tendermint/libs/autofile",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "JX9IV99UXK6UEl3eJaLttH+Qrv4=",
+			"path": "github.com/tendermint/tendermint/libs/clist",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "Fr7/SFt9glptXJNi1nCcgqbpEQg=",
+			"path": "github.com/tendermint/tendermint/libs/common",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "jNDedapkSTCL0lqWF80kHgJ+DAc=",
+			"path": "github.com/tendermint/tendermint/libs/db",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "3ycpgf6w5liXzMdKH7GlZBot0A4=",
+			"path": "github.com/tendermint/tendermint/libs/events",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "N0AWMf1SO+jdSxkGWGXR8fqtpLE=",
+			"path": "github.com/tendermint/tendermint/libs/fail",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "Yy+ex95i5wKJ3a0HX5E9lUm2V3E=",
+			"path": "github.com/tendermint/tendermint/libs/flowrate",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "Gvgys1bET+R4HywvAtYoO9nKee8=",
+			"path": "github.com/tendermint/tendermint/libs/log",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "slH9sDXey1XzuzNJCpEU4yi9Ylw=",
+			"path": "github.com/tendermint/tendermint/libs/pubsub",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "u5UmWvRHw6cnfn4tUrNCJEaSN/c=",
+			"path": "github.com/tendermint/tendermint/libs/pubsub/query",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "BLKdp19I3QNND4furE5a/s7UAWI=",
+			"path": "github.com/tendermint/tendermint/libs/test",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "Xy7Y9laEC7V7WPX7/OHw5MK9Qw4=",
+			"path": "github.com/tendermint/tendermint/mempool",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "qZeJ8tezVvGwKSsfJGQhNxdoymY=",
+			"path": "github.com/tendermint/tendermint/node",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "X5HB0lAYCHzhu6M9inqL+I0axaE=",
+			"path": "github.com/tendermint/tendermint/p2p",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "3q2ifZ5DDNes/IJmIJwJJj7pFnA=",
+			"path": "github.com/tendermint/tendermint/p2p/conn",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "gdv1TfDN0IM5SlvKlduNRb8+daM=",
+			"path": "github.com/tendermint/tendermint/p2p/dummy",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "3mG/DlrAv0yb+EcrDjATjZv8ViU=",
+			"path": "github.com/tendermint/tendermint/p2p/pex",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "sxzsFRpZzAPOFHtdI71UNw+/OXg=",
+			"path": "github.com/tendermint/tendermint/privval",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "a0SIzO+52JJdo4LfJgMkThxQ7kU=",
+			"path": "github.com/tendermint/tendermint/proxy",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "TTNFm/lqLbpfmbMM+tlC6qiNGYU=",
+			"path": "github.com/tendermint/tendermint/rpc/core",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "cZq+Ux3/cmfsplvEEAUZHc2ByoU=",
+			"path": "github.com/tendermint/tendermint/rpc/core/types",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "K6yIuxAhJH43X800DZV4m4oY3Lc=",
+			"path": "github.com/tendermint/tendermint/rpc/grpc",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "yvwPgyc47GTSjjCmbCthOE/OTZ4=",
+			"path": "github.com/tendermint/tendermint/rpc/lib/client",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "3lp11BaCKRSYvgnPo7ec/zeeMps=",
+			"path": "github.com/tendermint/tendermint/rpc/lib/server",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "cp6r3hHRtuphbKgpGHkfUDGfNnk=",
+			"path": "github.com/tendermint/tendermint/rpc/lib/types",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "sqrCmn3830oxP2mlCzgykITkuIw=",
+			"path": "github.com/tendermint/tendermint/rpc/test",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "YKFUKaxNIY0aO/64LpU5Ql4SIpc=",
+			"path": "github.com/tendermint/tendermint/state",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "fM33r+A0bgF2Fe8lfvHE7lKlb9g=",
+			"path": "github.com/tendermint/tendermint/state/txindex",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "yV170CIltrbMWO3SF7llNBkDrs4=",
+			"path": "github.com/tendermint/tendermint/state/txindex/kv",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "L59cjqCsxkbi8CpBYc0sFKFr5Rk=",
+			"path": "github.com/tendermint/tendermint/state/txindex/null",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "SMb4M5Z3W49uu0MA6iscCurvzVM=",
+			"path": "github.com/tendermint/tendermint/types",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "NDzHGDvUt5/MArGyYl6vX8eE2uk=",
+			"path": "github.com/tendermint/tendermint/types/proto3",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "uzyA5B8eoBJE3EXrNmFwAGutyac=",
+			"path": "github.com/tendermint/tendermint/types/time",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "Olc1th9JWHyXAVnFP4kPKi/Ta6k=",
+			"path": "github.com/tendermint/tendermint/version",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "20XuIoc75R0vBHzMLxFe3rQs4Ok=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/chacha20poly1305",
+			"path": "golang.org/x/crypto/chacha20poly1305",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "IQkUIOnvlf0tYloFx9mLaXSvXWQ=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/curve25519",
+			"path": "golang.org/x/crypto/curve25519",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "2LpxYGSf068307b7bhAuVjvzLLc=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/ed25519",
+			"path": "golang.org/x/crypto/ed25519",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "0JTAFXPkankmWcZGQJGScLDiaN8=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/ed25519/internal/edwards25519",
+			"path": "golang.org/x/crypto/ed25519/internal/edwards25519",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "4D8hxMIaSDEW5pCQk22Xj4DcDh4=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/hkdf",
+			"path": "golang.org/x/crypto/hkdf",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "fhxj9uzosD3dQefNF5JuGJzGZwg=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/internal/chacha20",
+			"path": "golang.org/x/crypto/internal/chacha20",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "/U7f2gaH6DnEmLguVLDbipU6kXU=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/internal/subtle",
+			"path": "golang.org/x/crypto/internal/subtle",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "Fy1wkWVRMRkq0/AEzFWwRCib8jU=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/nacl/box",
+			"path": "golang.org/x/crypto/nacl/box",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "/D0Q9baFJAeXy2an6mwni/FJHzw=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/nacl/secretbox",
+			"path": "golang.org/x/crypto/nacl/secretbox",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "vKbPb9fpjCdzuoOvajOJnYfHG2g=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/poly1305",
+			"path": "golang.org/x/crypto/poly1305",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "TQoVgHqUD72/5ALzi9p5W3oyaug=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/ripemd160",
+			"path": "golang.org/x/crypto/ripemd160",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "cRCpfAgTnlIDpdcfjivbiv+9YJU=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/crypto/salsa20/salsa",
+			"path": "golang.org/x/crypto/salsa20/salsa",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "CkkyCjLPBm0OGzfMuTfaDsd45X4=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/net/netutil",
+			"path": "golang.org/x/net/netutil",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "REkmyB368pIiip76LiqMLspgCRk=",
+			"origin": "github.com/tendermint/tendermint/vendor/golang.org/x/sys/cpu",
+			"path": "golang.org/x/sys/cpu",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		},
+		{
+			"checksumSHA1": "FmV+Y3VY7iRchu5m38iQTPMNAKc=",
+			"origin": "github.com/tendermint/tendermint/vendor/google.golang.org/grpc/transport",
+			"path": "google.golang.org/grpc/transport",
+			"revision": "1e1ca15bccedc16c2452c73745c3c2b5df91ae96",
+			"revisionTime": "2018-12-21T21:35:45Z"
+		}
+	],
+	"rootPath": "github.com/hyperledger/fabric"
+}

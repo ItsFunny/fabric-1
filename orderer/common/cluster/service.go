@@ -8,6 +8,7 @@ package cluster
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/hyperledger/fabric/common/flogging"
@@ -80,6 +81,7 @@ func (s *Service) handleSubmit(stream SubmitStream, addr string) error {
 		s.Logger.Warningf("Stream read from %s failed: %v", addr, err)
 		return err
 	}
+	fmt.Println("handleSubmit")
 	response, err := s.Dispatcher.DispatchSubmit(stream.Context(), request)
 	if err != nil {
 		s.Logger.Warningf("Handling of Propose() from %s failed: %+v", addr, err)
