@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/tendermint/tendermint/crypto"
@@ -21,6 +22,7 @@ import (
 	"github.com/tendermint/tendermint/p2p"
 	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/types"
+	tendtype "github.com/hyperledger/fabric/orderer/consensus/tendermintpbft/types"
 )
 
 //-----------------------------------------------------------------------------
@@ -73,7 +75,9 @@ type ConsensusState struct {
 	//TODO 维护本地区块链数据库的目的是为了evidence校验，这里还不知道具体校验什么逻辑。看起来不是必须的，先注释掉。order不需要本地维护状态数据库
 	//blockExec  *sm.BlockExecutor
 	blockStore sm.BlockStore
-	//by vito.he  注释掉内存池逻辑
+	//by vito.he  注释掉内存池逻辑，增加peerSend chan
+	peerSend     chan *tendtype.Message
+	WaitForCommit chan *tendtype.Message
 	//mempool    sm.Mempool
 	evpool     sm.EvidencePool
 
@@ -135,9 +139,12 @@ func NewConsensusState(
 	options ...StateOption,
 ) *ConsensusState {
 	cs := &ConsensusState{
+		WaitForCommit:     make(chan *tendtype.Message),
 		config:           config,
 		//blockExec:        blockExec,
 		blockStore:       blockStore,
+		//by vito.he
+		peerSend:         make(chan *tendtype.Message),
 		//mempool:          mempool,
 		peerMsgQueue:     make(chan msgInfo, msgQueueSize),
 		internalMsgQueue: make(chan msgInfo, msgQueueSize),
@@ -165,6 +172,9 @@ func NewConsensusState(
 		option(cs)
 	}
 	return cs
+}
+func (cs *ConsensusState) PeerSendOrderReq( msg * tendtype.Message) {
+	cs.peerSend <- msg
 }
 
 //----------------------------------------
@@ -936,6 +946,23 @@ func (cs *ConsensusState) createProposalBlock() (block *types.Block, blockParts 
 	//	cs.state.Validators.Size(),
 	//	len(evidence),
 	//), maxGas)
+
+	//
+	 txs := make([]types.Tx,1)
+	select {
+	case msg := <-cs.peerSend:
+		fmt.Println("received message", msg)
+		var byteBuffer bytes.Buffer
+		enc := gob.NewEncoder(&byteBuffer)
+		err := enc.Encode(msg)
+		if err != nil {
+			cs.Logger.Error("encode error:", err)
+		}
+		txs = append(txs, byteBuffer.Bytes())
+	default:
+		fmt.Println("no message received")
+	}
+
 	proposerAddr := cs.privValidator.GetAddress()
 	block, parts := cs.state.MakeBlock(cs.Height, txs, commit, evidence, proposerAddr)
 
@@ -1304,7 +1331,17 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 	//	}
 	//	return
 	//}
-
+	for i:= range block.Data.Txs{
+		//read to message struct
+		msg := tendtype.Message{}
+		newBuffer :=bytes.NewBuffer(block.Data.Txs[i])
+		dec := gob.NewDecoder(newBuffer)
+		err := dec.Decode(&msg)
+		if err != nil {
+			cs.Logger.Error("decode error:", err)
+		}
+		cs.WaitForCommit <- &msg
+	}
 	fail.Fail() // XXX
 
 	// must be called before we update state

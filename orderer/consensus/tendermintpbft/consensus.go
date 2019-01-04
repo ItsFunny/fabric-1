@@ -39,6 +39,7 @@ import (
 	"github.com/tendermint/tendermint/state/txindex/kv"
 	"github.com/tendermint/tendermint/state/txindex/null"
 	"github.com/tendermint/tendermint/types"
+	tendtype "github.com/hyperledger/fabric/orderer/consensus/tendermintpbft/types"
 )
 
 var genesisDocKey = []byte("genesisDoc")
@@ -57,7 +58,6 @@ type consenter struct{}
 
 type chain struct {
 	support  consensus.ConsenterSupport
-	sendChan chan *message
 	exitChan chan struct{}
 
 	cmn.BaseService
@@ -66,7 +66,6 @@ type chain struct {
 	// config
 	config        *cfg.Config
 	genesisDoc    *types.GenesisDoc   // initial validator set
-	//privValidator types.PrivValidator // local node's validator key
 
 	// network
 	transport   *p2p.MultiplexTransport
@@ -85,12 +84,6 @@ type chain struct {
 	txIndexer        txindex.TxIndexer
 	indexerService   *txindex.IndexerService
 	prometheusSrv    *http.Server
-}
-
-type message struct {
-	configSeq uint64
-	normalMsg *cb.Envelope
-	configMsg *cb.Envelope
 }
 
 
@@ -381,6 +374,7 @@ func (n *chain) Start() {
 
 	// start tx indexer
 	 n.indexerService.Start()
+	 go n.main()
 }
 
 func (ch *chain) Halt() {
@@ -398,28 +392,24 @@ func (ch *chain) WaitReady() error {
 
 // Order accepts normal messages for ordering
 func (ch *chain) Order(env *cb.Envelope, configSeq uint64) error {
-	select {
-	case ch.sendChan <- &message{
-		configSeq: configSeq,
-		normalMsg: env,
-	}:
-		return nil
-	case <-ch.exitChan:
-		return fmt.Errorf("Exiting")
-	}
+	ch.consensusState.PeerSendOrderReq(&tendtype.Message{
+		ConfigSeq: configSeq,
+		NormalMsg: env,
+	})
+	return nil
 }
 
 // Configure accepts configuration update messages for ordering
 func (ch *chain) Configure(config *cb.Envelope, configSeq uint64) error {
-	select {
-	case ch.sendChan <- &message{
-		configSeq: configSeq,
-		configMsg: config,
-	}:
-		return nil
-	case <-ch.exitChan:
-		return fmt.Errorf("Exiting")
-	}
+	ch.consensusState.PeerSendOrderReq(&tendtype.Message{
+		ConfigSeq: configSeq,
+		NormalMsg: config,
+	})
+	return nil
+	//select {
+	//case <-ch.exitChan:
+	//	return fmt.Errorf("Exiting")
+	//}
 }
 
 // Errored only closes on exit
@@ -615,4 +605,82 @@ func (n *chain) IsListening() bool {
 // NodeInfo returns the Node's Info from the Switch.
 func (n *chain) NodeInfo() p2p.NodeInfo {
 	return n.nodeInfo
+}
+
+
+func (ch *chain) main() {
+	var timer <-chan time.Time
+	var err error
+
+	for {
+		seq := ch.support.Sequence()
+		err = nil
+		select {
+		case msg := <-ch.consensusState.WaitForCommit:
+			if msg.ConfigMsg == nil {
+				// NormalMsg
+				if msg.ConfigSeq < seq {
+					_, err = ch.support.ProcessNormalMsg(msg.NormalMsg)
+					if err != nil {
+						logger.Info("Discarding bad normal message: %s", err)
+						continue
+					}
+				}
+				batches, pending := ch.support.BlockCutter().Ordered(msg.NormalMsg)
+
+				for _, batch := range batches {
+					block := ch.support.CreateNextBlock(batch)
+					ch.support.WriteBlock(block, nil)
+				}
+
+				switch {
+				case timer != nil && !pending:
+					// Timer is already running but there are no messages pending, stop the timer
+					timer = nil
+				case timer == nil && pending:
+					// Timer is not already running and there are messages pending, so start it
+					timer = time.After(ch.support.SharedConfig().BatchTimeout())
+					logger.Debug("Just began %s batch timer", ch.support.SharedConfig().BatchTimeout().String())
+				default:
+					// Do nothing when:
+					// 1. Timer is already running and there are messages pending
+					// 2. Timer is not set and there are no messages pending
+				}
+
+			} else {
+				// ConfigMsg
+				if msg.ConfigSeq < seq {
+					msg.ConfigMsg, _, err = ch.support.ProcessConfigMsg(msg.ConfigMsg)
+					if err != nil {
+						logger.Info("Discarding bad config message: %s", err)
+						continue
+					}
+				}
+				batch := ch.support.BlockCutter().Cut()
+				if batch != nil {
+					block := ch.support.CreateNextBlock(batch)
+					ch.support.WriteBlock(block, nil)
+				}
+
+				block := ch.support.CreateNextBlock([]*cb.Envelope{msg.ConfigMsg})
+				ch.support.WriteConfigBlock(block, nil)
+				timer = nil
+			}
+		case <-timer:
+			//clear the timer
+			timer = nil
+
+			batch := ch.support.BlockCutter().Cut()
+			if len(batch) == 0 {
+				logger.Info("Batch timer expired with no pending requests, this might indicate a bug")
+				continue
+			}
+			logger.Debug("Batch timer expired, creating block")
+			block := ch.support.CreateNextBlock(batch)
+			ch.support.WriteBlock(block, nil)
+		case <-ch.exitChan:
+			logger.Debug("Exiting")
+			return
+		}
+	}
 }
