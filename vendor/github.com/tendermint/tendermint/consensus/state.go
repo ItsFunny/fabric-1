@@ -76,8 +76,8 @@ type ConsensusState struct {
 	//blockExec  *sm.BlockExecutor
 	blockStore sm.BlockStore
 	//by vito.he  注释掉内存池逻辑，增加peerSend chan
-	peerSend     chan *tendtype.Message
-	WaitForCommit chan *tendtype.Message
+	consensusReqPool     chan *tendtype.Message
+	WaitForCommitPool chan *tendtype.Message
 	//mempool    sm.Mempool
 	evpool     sm.EvidencePool
 
@@ -139,12 +139,12 @@ func NewConsensusState(
 	options ...StateOption,
 ) *ConsensusState {
 	cs := &ConsensusState{
-		WaitForCommit:     make(chan *tendtype.Message),
+		WaitForCommitPool:     make(chan *tendtype.Message),
 		config:           config,
 		//blockExec:        blockExec,
 		blockStore:       blockStore,
 		//by vito.he
-		peerSend:         make(chan *tendtype.Message),
+		consensusReqPool:  make(chan *tendtype.Message),
 		//mempool:          mempool,
 		peerMsgQueue:     make(chan msgInfo, msgQueueSize),
 		internalMsgQueue: make(chan msgInfo, msgQueueSize),
@@ -173,8 +173,8 @@ func NewConsensusState(
 	}
 	return cs
 }
-func (cs *ConsensusState) PeerSendOrderReq( msg * tendtype.Message) {
-	cs.peerSend <- msg
+func (cs *ConsensusState) SendConsReqToPool( msg * tendtype.Message) {
+	cs.consensusReqPool <- msg
 }
 
 //----------------------------------------
@@ -950,7 +950,7 @@ func (cs *ConsensusState) createProposalBlock() (block *types.Block, blockParts 
 	//
 	 txs := make([]types.Tx,1)
 	select {
-	case msg := <-cs.peerSend:
+	case msg := <-cs.consensusReqPool:
 		fmt.Println("received message", msg)
 		var byteBuffer bytes.Buffer
 		enc := gob.NewEncoder(&byteBuffer)
@@ -1340,7 +1340,7 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 		if err != nil {
 			cs.Logger.Error("decode error:", err)
 		}
-		cs.WaitForCommit <- &msg
+		cs.WaitForCommitPool <- &msg
 	}
 	fail.Fail() // XXX
 

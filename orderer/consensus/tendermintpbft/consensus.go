@@ -392,7 +392,7 @@ func (ch *chain) WaitReady() error {
 
 // Order accepts normal messages for ordering
 func (ch *chain) Order(env *cb.Envelope, configSeq uint64) error {
-	ch.consensusState.PeerSendOrderReq(&tendtype.Message{
+	ch.consensusState.SendConsReqToPool(&tendtype.Message{
 		ConfigSeq: configSeq,
 		NormalMsg: env,
 	})
@@ -401,7 +401,7 @@ func (ch *chain) Order(env *cb.Envelope, configSeq uint64) error {
 
 // Configure accepts configuration update messages for ordering
 func (ch *chain) Configure(config *cb.Envelope, configSeq uint64) error {
-	ch.consensusState.PeerSendOrderReq(&tendtype.Message{
+	ch.consensusState.SendConsReqToPool(&tendtype.Message{
 		ConfigSeq: configSeq,
 		NormalMsg: config,
 	})
@@ -616,7 +616,7 @@ func (ch *chain) main() {
 		seq := ch.support.Sequence()
 		err = nil
 		select {
-		case msg := <-ch.consensusState.WaitForCommit:
+		case msg := <-ch.consensusState.WaitForCommitPool:
 			if msg.ConfigMsg == nil {
 				// NormalMsg
 				if msg.ConfigSeq < seq {
