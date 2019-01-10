@@ -48,7 +48,7 @@ type peerConfig struct {
 // peers specific to its domain.
 type Transport interface {
 	// Accept returns a newly connected Peer.
-	Accept(peerConfig) (Peer, error)
+	Accept(peerConfig,string) (Peer, error)
 
 	// Dial connects to the Peer for the address.
 	Dial(NetAddress, peerConfig) (Peer, error)
@@ -113,8 +113,8 @@ func MultiplexTransportResolver(resolver IPResolver) MultiplexTransportOption {
 // multiplexed peers.
 type MultiplexTransport struct {
 	listener net.Listener
-
-	acceptc chan accept
+	//modify by hxm add map to send msg to multi switch
+	acceptc map[string] chan accept
 	closec  chan struct{}
 
 	// Lookup table for duplicate ip and id checks.
@@ -145,7 +145,7 @@ func NewMultiplexTransport(
 	mConfig conn.MConnConfig,
 ) *MultiplexTransport {
 	return &MultiplexTransport{
-		acceptc:          make(chan accept),
+		acceptc:          make(map[string]chan accept),
 		closec:           make(chan struct{}),
 		dialTimeout:      defaultDialTimeout,
 		filterTimeout:    defaultFilterTimeout,
@@ -159,11 +159,15 @@ func NewMultiplexTransport(
 }
 
 // Accept implements Transport.
-func (mt *MultiplexTransport) Accept(cfg peerConfig) (Peer, error) {
+func (mt *MultiplexTransport) AddSwitchAcceptC(switchId string){
+	mt.acceptc[switchId] =  make(chan accept)
+}
+func (mt *MultiplexTransport) Accept(cfg peerConfig,switchId string) (Peer, error) {
 	select {
 	// This case should never have any side-effectful/blocking operations to
 	// ensure that quality peers are ready to be used.
-	case a := <-mt.acceptc:
+	case a := <-mt.acceptc[switchId]:
+		fmt.Println("MultiplexTransport Accept switchId:"+switchId)
 		if a.err != nil {
 			return nil, a.err
 		}
@@ -241,8 +245,10 @@ func (mt *MultiplexTransport) acceptPeers() {
 			default:
 				// Transport is not closed
 			}
+			for k :=range mt.acceptc{
+				mt.acceptc[k] <- accept{err: err}
+			}
 
-			mt.acceptc <- accept{err: err}
 			return
 		}
 
@@ -263,13 +269,20 @@ func (mt *MultiplexTransport) acceptPeers() {
 			}
 
 			select {
-			case mt.acceptc <- accept{secretConn, nodeInfo, err}:
-				// Make the upgraded peer available.
+			//delete by vito.he
+			//case mt.acceptc <- accept{secretConn, nodeInfo, err}:
+			//	// Make the upgraded peer available.
 			case <-mt.closec:
 				// Give up if the transport was closed.
 				_ = c.Close()
 				return
+			default:
+				for k :=range mt.acceptc{
+					mt.acceptc[k] <- accept{secretConn, nodeInfo, err}
+				}
+
 			}
+
 		}(c)
 	}
 }
@@ -474,6 +487,7 @@ func upgradeSecretConn(
 	if err := c.SetDeadline(time.Now().Add(timeout)); err != nil {
 		return nil, err
 	}
+	fmt.Println("upgradeSecretConn:"+c.RemoteAddr().String())
 
 	sc, err := conn.MakeSecretConnection(c, privKey)
 	if err != nil {

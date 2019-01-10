@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/tendermint/tendermint/crypto"
 	"reflect"
 	"runtime/debug"
 	"sync"
@@ -16,13 +15,13 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
+	tmtype "github.com/hyperledger/fabric/orderer/consensus/tendermintpbft/types"
 	cfg "github.com/tendermint/tendermint/config"
 	cstypes "github.com/tendermint/tendermint/consensus/types"
 	tmevents "github.com/tendermint/tendermint/libs/events"
 	"github.com/tendermint/tendermint/p2p"
 	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/types"
-	tendtype "github.com/hyperledger/fabric/orderer/consensus/tendermintpbft/types"
 )
 
 //-----------------------------------------------------------------------------
@@ -71,13 +70,8 @@ type ConsensusState struct {
 	privValidator types.PrivValidator // for signing votes
 
 	// services for creating and executing blocks
-	//TODO by vito.he  注释掉blockExecutor逻辑，这里该executor的目的是本地维护区块链状态数据库，当然，也可以通过p2p同步其他节点的数据库。
-	//TODO 维护本地区块链数据库的目的是为了evidence校验，这里还不知道具体校验什么逻辑。看起来不是必须的，先注释掉。order不需要本地维护状态数据库
-	//blockExec  *sm.BlockExecutor
+	blockExec  *sm.BlockExecutor
 	blockStore sm.BlockStore
-	//by vito.he  注释掉内存池逻辑，增加peerSend chan
-	consensusReqPool     chan *tendtype.Message
-	WaitForCommitPool chan *tendtype.Message
 	//mempool    sm.Mempool
 	evpool     sm.EvidencePool
 
@@ -133,18 +127,16 @@ type StateOption func(*ConsensusState)
 func NewConsensusState(
 	config *cfg.ConsensusConfig,
 	state sm.State,
+	blockExec *sm.BlockExecutor,
 	blockStore sm.BlockStore,
 	//mempool sm.Mempool,
 	evpool sm.EvidencePool,
 	options ...StateOption,
 ) *ConsensusState {
 	cs := &ConsensusState{
-		WaitForCommitPool:     make(chan *tendtype.Message),
 		config:           config,
-		//blockExec:        blockExec,
+		blockExec:        blockExec,
 		blockStore:       blockStore,
-		//by vito.he
-		consensusReqPool:  make(chan *tendtype.Message),
 		//mempool:          mempool,
 		peerMsgQueue:     make(chan msgInfo, msgQueueSize),
 		internalMsgQueue: make(chan msgInfo, msgQueueSize),
@@ -173,10 +165,12 @@ func NewConsensusState(
 	}
 	return cs
 }
-func (cs *ConsensusState) SendConsReqToPool( msg * tendtype.Message) {
-	cs.consensusReqPool <- msg
+func (cs *ConsensusState) SendConsReqToPool( msg * tmtype.Message) {
+	cs.blockExec.PutConsReqPool(msg)
 }
-
+func (cs *ConsensusState) GetWaitCommitPool()(chan * tmtype.Message) {
+	return cs.blockExec.GetWaitCommitPool()
+}
 //----------------------------------------
 // Public interface
 
@@ -189,7 +183,7 @@ func (cs *ConsensusState) SetLogger(l log.Logger) {
 // SetEventBus sets event bus.
 func (cs *ConsensusState) SetEventBus(b *types.EventBus) {
 	cs.eventBus = b
-	//cs.blockExec.SetEventBus(b)
+	cs.blockExec.SetEventBus(b)
 }
 
 // StateMetrics sets the metrics.
@@ -948,9 +942,10 @@ func (cs *ConsensusState) createProposalBlock() (block *types.Block, blockParts 
 	//), maxGas)
 
 	//
-	 txs := make([]types.Tx,1)
+	 txs := make([]types.Tx,0)
+	 fmt.Println("wait for new consReqPool!")
 	select {
-	case msg := <-cs.consensusReqPool:
+	case msg := <-cs.blockExec.GetConsReqPool():
 		fmt.Println("received message", msg)
 		var byteBuffer bytes.Buffer
 		enc := gob.NewEncoder(&byteBuffer)
@@ -1012,7 +1007,7 @@ func (cs *ConsensusState) defaultDoPrevote(height int64, round int) {
 	}
 
 	// Validate proposal block
-	err := cs.validateBlock()
+	err := cs.blockExec.ValidateBlock(cs.state, cs.ProposalBlock)
 	if err != nil {
 		// ProposalBlock is invalid, prevote nil.
 		logger.Error("enterPrevote: ProposalBlock is invalid", "err", err)
@@ -1125,7 +1120,7 @@ func (cs *ConsensusState) enterPrecommit(height int64, round int) {
 	if cs.ProposalBlock.HashesTo(blockID.Hash) {
 		logger.Info("enterPrecommit: +2/3 prevoted proposal block. Locking", "hash", blockID.Hash)
 		// Validate the block.
-		if err := cs.validateBlock(); err != nil {
+		if err := cs.blockExec.ValidateBlock(cs.state, cs.ProposalBlock); err != nil {
 			cmn.PanicConsensus(fmt.Sprintf("enterPrecommit: +2/3 prevoted for an invalid block: %v", err))
 		}
 		cs.LockedRound = round
@@ -1274,7 +1269,7 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 	if !block.HashesTo(blockID.Hash) {
 		cmn.PanicSanity(fmt.Sprintf("Cannot finalizeCommit, ProposalBlock does not hash to commit hash"))
 	}
-	if err := cs.validateBlock(); err != nil {
+	if err := cs.blockExec.ValidateBlock(cs.state, block); err != nil {
 		cmn.PanicConsensus(fmt.Sprintf("+2/3 committed an invalid block: %v", err))
 	}
 
@@ -1320,28 +1315,17 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 
 	// Execute and commit the block, update and save the state, and update the mempool.
 	// NOTE The block.AppHash wont reflect these txs until the next block.
-	//TODO:BY vito.he
-	//var err error
-	//stateCopy, err = cs.blockExec.ApplyBlock(stateCopy, types.BlockID{block.Hash(), blockParts.Header()}, block)
-	//if err != nil {
-	//	cs.Logger.Error("Error on ApplyBlock. Did the application crash? Please restart tendermint", "err", err)
-	//	err := cmn.Kill()
-	//	if err != nil {
-	//		cs.Logger.Error("Failed to kill this process - please do so manually", "err", err)
-	//	}
-	//	return
-	//}
-	for i:= range block.Data.Txs{
-		//read to message struct
-		msg := tendtype.Message{}
-		newBuffer :=bytes.NewBuffer(block.Data.Txs[i])
-		dec := gob.NewDecoder(newBuffer)
-		err := dec.Decode(&msg)
+	var err error
+	stateCopy, err = cs.blockExec.ApplyBlock(stateCopy, types.BlockID{block.Hash(), blockParts.Header()}, block)
+	if err != nil {
+		cs.Logger.Error("Error on ApplyBlock. Did the application crash? Please restart tendermint", "err", err)
+		err := cmn.Kill()
 		if err != nil {
-			cs.Logger.Error("decode error:", err)
+			cs.Logger.Error("Failed to kill this process - please do so manually", "err", err)
 		}
-		cs.WaitForCommitPool <- &msg
+		return
 	}
+
 	fail.Fail() // XXX
 
 	// must be called before we update state
@@ -1735,155 +1719,6 @@ func (cs *ConsensusState) signAddVote(type_ types.SignedMsgType, hash []byte, he
 	return nil
 }
 
-//-----------------------------------------------------
-// Validate block
-
-func (cs *ConsensusState)validateBlock() error {
-	state,block :=cs.state, cs.ProposalBlock
-	// Validate internal consistency.
-	if err := block.ValidateBasic(); err != nil {
-		return err
-	}
-
-	// Validate basic info.
-	if block.Version != state.Version.Consensus {
-		return fmt.Errorf("Wrong Block.Header.Version. Expected %v, got %v",
-			state.Version.Consensus,
-			block.Version,
-		)
-	}
-	if block.ChainID != state.ChainID {
-		return fmt.Errorf("Wrong Block.Header.ChainID. Expected %v, got %v",
-			state.ChainID,
-			block.ChainID,
-		)
-	}
-	if block.Height != state.LastBlockHeight+1 {
-		return fmt.Errorf("Wrong Block.Header.Height. Expected %v, got %v",
-			state.LastBlockHeight+1,
-			block.Height,
-		)
-	}
-
-	// Validate prev block info.
-	if !block.LastBlockID.Equals(state.LastBlockID) {
-		return fmt.Errorf("Wrong Block.Header.LastBlockID.  Expected %v, got %v",
-			state.LastBlockID,
-			block.LastBlockID,
-		)
-	}
-
-	newTxs := int64(len(block.Data.Txs))
-	if block.TotalTxs != state.LastBlockTotalTx+newTxs {
-		return fmt.Errorf("Wrong Block.Header.TotalTxs. Expected %v, got %v",
-			state.LastBlockTotalTx+newTxs,
-			block.TotalTxs,
-		)
-	}
-
-	// Validate app info
-	if !bytes.Equal(block.AppHash, state.AppHash) {
-		return fmt.Errorf("Wrong Block.Header.AppHash.  Expected %X, got %v",
-			state.AppHash,
-			block.AppHash,
-		)
-	}
-	if !bytes.Equal(block.ConsensusHash, state.ConsensusParams.Hash()) {
-		return fmt.Errorf("Wrong Block.Header.ConsensusHash.  Expected %X, got %v",
-			state.ConsensusParams.Hash(),
-			block.ConsensusHash,
-		)
-	}
-	if !bytes.Equal(block.LastResultsHash, state.LastResultsHash) {
-		return fmt.Errorf("Wrong Block.Header.LastResultsHash.  Expected %X, got %v",
-			state.LastResultsHash,
-			block.LastResultsHash,
-		)
-	}
-	if !bytes.Equal(block.ValidatorsHash, state.Validators.Hash()) {
-		return fmt.Errorf("Wrong Block.Header.ValidatorsHash.  Expected %X, got %v",
-			state.Validators.Hash(),
-			block.ValidatorsHash,
-		)
-	}
-	if !bytes.Equal(block.NextValidatorsHash, state.NextValidators.Hash()) {
-		return fmt.Errorf("Wrong Block.Header.NextValidatorsHash.  Expected %X, got %v",
-			state.NextValidators.Hash(),
-			block.NextValidatorsHash,
-		)
-	}
-
-	// Validate block LastCommit.
-	if block.Height == 1 {
-		if len(block.LastCommit.Precommits) != 0 {
-			return errors.New("Block at height 1 can't have LastCommit precommits")
-		}
-	} else {
-		if len(block.LastCommit.Precommits) != state.LastValidators.Size() {
-			return fmt.Errorf("Invalid block commit size. Expected %v, got %v",
-				state.LastValidators.Size(),
-				len(block.LastCommit.Precommits),
-			)
-		}
-		err := state.LastValidators.VerifyCommit(
-			state.ChainID, state.LastBlockID, block.Height-1, block.LastCommit)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Validate block Time
-	if block.Height > 1 {
-		if !block.Time.After(state.LastBlockTime) {
-			return fmt.Errorf("Block time %v not greater than last block time %v",
-				block.Time,
-				state.LastBlockTime,
-			)
-		}
-
-		medianTime := sm.MedianTime(block.LastCommit, state.LastValidators)
-		if !block.Time.Equal(medianTime) {
-			return fmt.Errorf("Invalid block time. Expected %v, got %v",
-				medianTime,
-				block.Time,
-			)
-		}
-	} else if block.Height == 1 {
-		genesisTime := state.LastBlockTime
-		if !block.Time.Equal(genesisTime) {
-			return fmt.Errorf("Block time %v is not equal to genesis time %v",
-				block.Time,
-				genesisTime,
-			)
-		}
-	}
-
-	// Limit the amount of evidence
-	maxEvidenceBytes := types.MaxEvidenceBytesPerBlock(state.ConsensusParams.BlockSize.MaxBytes)
-	evidenceBytes := int64(len(block.Evidence.Evidence)) * types.MaxEvidenceBytes
-	if evidenceBytes > maxEvidenceBytes {
-		return types.NewErrEvidenceOverflow(maxEvidenceBytes, evidenceBytes)
-	}
-	//by vito.he
-	// Validate all evidence.
-	//for _, ev := range block.Evidence.Evidence {
-	//	if err := VerifyEvidence(stateDB, state, ev); err != nil {
-	//		return types.NewErrEvidenceInvalid(ev, err)
-	//	}
-	//}
-
-	// NOTE: We can't actually verify it's the right proposer because we dont
-	// know what round the block was first proposed. So just check that it's
-	// a legit address and a known validator.
-	if len(block.ProposerAddress) != crypto.AddressSize ||
-		!state.Validators.HasAddress(block.ProposerAddress) {
-		return fmt.Errorf("Block.Header.ProposerAddress, %X, is not a validator",
-			block.ProposerAddress,
-		)
-	}
-
-	return nil
-}
 //---------------------------------------------------------
 
 func CompareHRS(h1 int64, r1 int, s1 cstypes.RoundStepType, h2 int64, r2 int, s2 cstypes.RoundStepType) int {

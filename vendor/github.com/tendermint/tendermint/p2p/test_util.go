@@ -183,7 +183,7 @@ func MakeSwitch(
 	}
 
 	// TODO: let the config be passed in?
-	sw := initSwitch(i, NewSwitch(cfg, t, opts...))
+	sw := initSwitch(i, NewSwitch("test",cfg, t, opts...))
 	sw.SetLogger(log.TestingLogger().With("switch", i))
 	sw.SetNodeKey(&nodeKey)
 

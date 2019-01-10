@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hyperledger/fabric/orderer/consensus/tendermintpbft"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -411,6 +412,8 @@ func initializeMultichannelRegistrar(bootstrapBlock *cb.Block,
 		raftConsenter := etcdraft.New(clusterDialer, conf, srvConf, srv, registrar)
 		consenters["etcdraft"] = raftConsenter
 	}
+	//add by vito.he enabled pbft consensus
+	consenters["tendermintpbft"] = tendermintpbft.New()
 	registrar.Initialize(consenters)
 	return registrar
 }

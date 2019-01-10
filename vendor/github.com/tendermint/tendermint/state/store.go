@@ -51,7 +51,7 @@ func LoadStateFromDBOrGenesisDoc(stateDB dbm.DB, genesisDoc *types.GenesisDoc) (
 		if err != nil {
 			return state, err
 		}
-		SaveState(stateDB, state)
+		 SaveState(stateDB, state)
 	}
 
 	return state, nil

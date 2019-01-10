@@ -64,7 +64,8 @@ type PeerFilterFunc func(IPeerSet, Peer) error
 // incoming messages are received on the reactor.
 type Switch struct {
 	cmn.BaseService
-
+	//add by vito.he ,add switchId to satify fabric multichannel ,each channel have the whole tm_pbft
+	switchId     string
 	config       *config.P2PConfig
 	reactors     map[string]Reactor
 	chDescs      []*conn.ChannelDescriptor
@@ -91,11 +92,13 @@ type SwitchOption func(*Switch)
 
 // NewSwitch creates a new Switch with the given config.
 func NewSwitch(
+	switchId   string,
 	cfg *config.P2PConfig,
 	transport Transport,
 	options ...SwitchOption,
 ) *Switch {
 	sw := &Switch{
+		switchId:    switchId,
 		config:        cfg,
 		reactors:      make(map[string]Reactor),
 		chDescs:       make([]*conn.ChannelDescriptor, 0),
@@ -476,7 +479,7 @@ func (sw *Switch) acceptRoutine() {
 			onPeerError:  sw.StopPeerForError,
 			reactorsByCh: sw.reactorsByCh,
 			metrics:      sw.metrics,
-		})
+		},sw.switchId)
 		if err != nil {
 			switch err.(type) {
 			case ErrRejected:
@@ -673,4 +676,7 @@ func (sw *Switch) startInitPeer(p Peer) error {
 	}
 
 	return nil
+}
+func (sw *Switch)GetSwitchId()(string){
+	return sw.switchId
 }

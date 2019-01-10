@@ -183,6 +183,7 @@ func (r *PEXReactor) logErrAddrBook(err error) {
 		case ErrAddrBookNilAddr:
 			r.Logger.Error("Failed to add new address", "err", err)
 		default:
+
 			// non-routable, self, full book, private, etc.
 			r.Logger.Debug("Failed to add new address", "err", err)
 		}

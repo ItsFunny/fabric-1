@@ -3,6 +3,7 @@ package consensus
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"sync"
 	"time"
 
@@ -75,7 +76,7 @@ func (conR *ConsensusReactor) OnStart() error {
 	go conR.peerStatsRoutine()
 
 	conR.subscribeToBroadcastEvents()
-
+	fmt.Println("conR.FastSync========="+strconv.FormatBool(conR.FastSync()))
 	if !conR.FastSync() {
 		err := conR.conS.Start()
 		if err != nil {
@@ -197,6 +198,7 @@ func (conR *ConsensusReactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 // proposals, block parts, and votes are ordered by the receiveRoutine
 // NOTE: blocks on consensus state for proposals, block parts, and votes
 func (conR *ConsensusReactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) {
+	fmt.Println("Receive")
 	if !conR.IsRunning() {
 		conR.Logger.Debug("Receive", "src", src, "chId", chID, "bytes", msgBytes)
 		return

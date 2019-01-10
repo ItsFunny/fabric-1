@@ -269,6 +269,7 @@ func (pool *BlockPool) MaxPeerHeight() int64 {
 
 // Sets the peer's alleged blockchain height.
 func (pool *BlockPool) SetPeerHeight(peerID p2p.ID, height int64) {
+	fmt.Println("============SetPeerHeight:"+peerID)
 	pool.mtx.Lock()
 	defer pool.mtx.Unlock()
 

@@ -274,6 +274,7 @@ var Defaults = TopLevel{
 // Load parses the orderer YAML file and environment, producing
 // a struct suitable for config use, returning error on failure.
 func Load() (*TopLevel, error) {
+	viper.Reset()
 	config := viper.New()
 	coreconfig.InitViper(config, "orderer")
 	config.SetEnvPrefix(Prefix)

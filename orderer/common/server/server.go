@@ -40,6 +40,7 @@ type deliverSupport struct {
 
 func (ds deliverSupport) GetChain(chainID string) deliver.Chain {
 	chain := ds.Registrar.GetChain(chainID)
+	fmt.Println("GetChain-------chainId:"+chainID)
 	if chain == nil {
 		return nil
 	}

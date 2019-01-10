@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package common
 
 import (
+	"fmt"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/localmsp"
 	"github.com/hyperledger/fabric/common/util"
@@ -71,6 +72,7 @@ func (d *DeliverClient) readBlock() (*cb.Block, error) {
 	switch t := msg.Type.(type) {
 	case *ab.DeliverResponse_Status:
 		logger.Infof("Got status: %v", t)
+	   fmt.Println("11111")
 		return nil, errors.Errorf("can't read the block: %v", t)
 	case *ab.DeliverResponse_Block:
 		logger.Infof("Received block: %v", t.Block.Header.Number)

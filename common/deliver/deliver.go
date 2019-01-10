@@ -8,6 +8,7 @@ package deliver
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"math"
 	"strconv"
@@ -164,8 +165,10 @@ func (h *Handler) Handle(ctx context.Context, srv *Server) error {
 		if err != nil {
 			return err
 		}
-
+		fmt.Println(2222222)
+		fmt.Println(status)
 		err = srv.SendStatusResponse(status)
+
 		if status != cb.Status_SUCCESS {
 			return err
 		}
@@ -211,6 +214,7 @@ func (h *Handler) deliverBlocks(ctx context.Context, srv *Server, envelope *cb.E
 	}
 
 	chain := h.ChainManager.GetChain(chdr.ChannelId)
+	fmt.Println("------chainId is :"+chdr.ChannelId)
 	if chain == nil {
 		// Note, we log this at DEBUG because SDKs will poll waiting for channels to be created
 		// So we would expect our log to be somewhat flooded with these

@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/config"
+	"io"
 	"io/ioutil"
+	"os"
 	"sync"
 	"time"
 
@@ -105,13 +108,30 @@ func LoadFilePV(filePath string) *FilePV {
 
 // LoadOrGenFilePV loads a FilePV from the given filePath
 // or else generates a new one and saves it to the filePath.
-func LoadOrGenFilePV(filePath string) *FilePV {
+func LoadOrGenFilePV(cfg *config.Config) *FilePV {
 	var pv *FilePV
+	filePath := cfg.PrivValidatorFile()
 	if cmn.FileExists(filePath) {
 		pv = LoadFilePV(filePath)
 	} else {
-		pv = GenFilePV(filePath)
-		pv.Save()
+		//pv = GenFilePV(filePath)
+		//pv.Save()
+
+		//modify by vito.he copy from /home/config/priv_validator.json
+
+		src, err := os.Open(cfg.RootPrivValidatorFile())
+		if err != nil {
+			return nil
+		}
+		defer src.Close()
+		dst, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			return nil
+		}
+		defer dst.Close()
+		io.Copy(dst, src)
+		pv = LoadFilePV(filePath)
+
 	}
 	return pv
 }

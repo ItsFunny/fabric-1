@@ -1,6 +1,7 @@
 package config
 
 import (
+	 pt "path"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -52,9 +53,9 @@ type Config struct {
 	BaseConfig `mapstructure:",squash"`
 
 	// Options for services
-	RPC             *RPCConfig             `mapstructure:"rpc"`
+	//RPC             *RPCConfig             `mapstructure:"rpc"`
 	P2P             *P2PConfig             `mapstructure:"p2p"`
-	Mempool         *MempoolConfig         `mapstructure:"mempool"`
+	//Mempool         *MempoolConfig         `mapstructure:"mempool"`
 	Consensus       *ConsensusConfig       `mapstructure:"consensus"`
 	TxIndex         *TxIndexConfig         `mapstructure:"tx_index"`
 	Instrumentation *InstrumentationConfig `mapstructure:"instrumentation"`
@@ -64,9 +65,9 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		BaseConfig:      DefaultBaseConfig(),
-		RPC:             DefaultRPCConfig(),
+		//RPC:             DefaultRPCConfig(),
 		P2P:             DefaultP2PConfig(),
-		Mempool:         DefaultMempoolConfig(),
+		//Mempool:         DefaultMempoolConfig(),
 		Consensus:       DefaultConsensusConfig(),
 		TxIndex:         DefaultTxIndexConfig(),
 		Instrumentation: DefaultInstrumentationConfig(),
@@ -77,9 +78,9 @@ func DefaultConfig() *Config {
 func TestConfig() *Config {
 	return &Config{
 		BaseConfig:      TestBaseConfig(),
-		RPC:             TestRPCConfig(),
+		//RPC:             TestRPCConfig(),
 		P2P:             TestP2PConfig(),
-		Mempool:         TestMempoolConfig(),
+		//Mempool:         TestMempoolConfig(),
 		Consensus:       TestConsensusConfig(),
 		TxIndex:         TestTxIndexConfig(),
 		Instrumentation: TestInstrumentationConfig(),
@@ -89,9 +90,9 @@ func TestConfig() *Config {
 // SetRoot sets the RootDir for all Config structs
 func (cfg *Config) SetRoot(root string) *Config {
 	cfg.BaseConfig.RootDir = root
-	cfg.RPC.RootDir = root
+	//cfg.RPC.RootDir = root
 	cfg.P2P.RootDir = root
-	cfg.Mempool.RootDir = root
+	//cfg.Mempool.RootDir = root
 	cfg.Consensus.RootDir = root
 	return cfg
 }
@@ -102,15 +103,15 @@ func (cfg *Config) ValidateBasic() error {
 	if err := cfg.BaseConfig.ValidateBasic(); err != nil {
 		return err
 	}
-	if err := cfg.RPC.ValidateBasic(); err != nil {
-		return errors.Wrap(err, "Error in [rpc] section")
-	}
+	//if err := cfg.RPC.ValidateBasic(); err != nil {
+	//	return errors.Wrap(err, "Error in [rpc] section")
+	//}
 	if err := cfg.P2P.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "Error in [p2p] section")
 	}
-	if err := cfg.Mempool.ValidateBasic(); err != nil {
-		return errors.Wrap(err, "Error in [mempool] section")
-	}
+	//if err := cfg.Mempool.ValidateBasic(); err != nil {
+	//	return errors.Wrap(err, "Error in [mempool] section")
+	//}
 	if err := cfg.Consensus.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "Error in [consensus] section")
 	}
@@ -128,13 +129,15 @@ type BaseConfig struct {
 	// chainID is unexposed and immutable but here for convenience
 	chainID string
 
+	//add by vito.he
+	ChannelRootDir string
 	// The root directory for all data.
 	// This should be set in viper so it can unmarshal into this struct
 	RootDir string `mapstructure:"home"`
 
 	// TCP or UNIX socket address of the ABCI application,
 	// or the name of an ABCI application compiled in with the Tendermint binary
-	ProxyApp string `mapstructure:"proxy_app"`
+	//ProxyApp string `mapstructure:"proxy_app"`
 
 	// A custom human readable name for this node
 	Moniker string `mapstructure:"moniker"`
@@ -187,7 +190,7 @@ func DefaultBaseConfig() BaseConfig {
 		PrivValidator:     defaultPrivValPath,
 		NodeKey:           defaultNodeKeyPath,
 		Moniker:           defaultMoniker,
-		ProxyApp:          "tcp://127.0.0.1:26658",
+		//ProxyApp:          "tcp://127.0.0.1:26658",
 		ABCI:              "socket",
 		LogLevel:          DefaultPackageLogLevels(),
 		LogFormat:         LogFormatPlain,
@@ -203,7 +206,7 @@ func DefaultBaseConfig() BaseConfig {
 func TestBaseConfig() BaseConfig {
 	cfg := DefaultBaseConfig()
 	cfg.chainID = "tendermint_test"
-	cfg.ProxyApp = "kvstore"
+	//cfg.ProxyApp = "kvstore"
 	cfg.FastSync = false
 	cfg.DBBackend = "memdb"
 	return cfg
@@ -220,9 +223,11 @@ func (cfg BaseConfig) GenesisFile() string {
 
 // PrivValidatorFile returns the full path to the priv_validator.json file
 func (cfg BaseConfig) PrivValidatorFile() string {
+	return rootify(cfg.PrivValidator, cfg.ChannelRootDir)
+}
+func (cfg BaseConfig) RootPrivValidatorFile() string {
 	return rootify(cfg.PrivValidator, cfg.RootDir)
 }
-
 // NodeKeyFile returns the full path to the node_key.json file
 func (cfg BaseConfig) NodeKeyFile() string {
 	return rootify(cfg.NodeKey, cfg.RootDir)
@@ -230,7 +235,8 @@ func (cfg BaseConfig) NodeKeyFile() string {
 
 // DBDir returns the full path to the database directory
 func (cfg BaseConfig) DBDir() string {
-	return rootify(cfg.DBPath, cfg.RootDir)
+	//return rootify(cfg.DBPath, cfg.RootDir)
+	return rootify(cfg.DBPath, cfg.ChannelRootDir)
 }
 
 // ValidateBasic performs basic validation (checking param bounds, etc.) and
@@ -817,7 +823,15 @@ func rootify(path, root string) string {
 	if filepath.IsAbs(path) {
 		return path
 	}
-	return filepath.Join(root, path)
+	path = filepath.Join(root, path)
+	_, err := os.Stat(path)
+	if err == nil {
+		return path
+	}
+	if os.IsNotExist(err) {
+		os.MkdirAll(pt.Dir(path),0755)
+	}
+	return path
 }
 
 //-----------------------------------------------------------------------------
