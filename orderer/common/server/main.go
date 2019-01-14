@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hyperledger/fabric/orderer/consensus/tendermintpbft"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -357,7 +358,8 @@ func initializeBootstrapChannel(genesisBlock *cb.Block, lf blockledger.Factory) 
 }
 
 func isClusterType(_ *cb.Block) bool {
-	return false
+	// 2019.01.14 by vito.he to support raft & tmpbft
+	return true
 }
 
 func initializeGrpcServer(conf *localconfig.TopLevel, serverConfig comm.ServerConfig) *comm.GRPCServer {
@@ -413,6 +415,8 @@ func initializeMultichannelRegistrar(bootstrapBlock *cb.Block,
 	if isClusterType(bootstrapBlock) {
 		raftConsenter := etcdraft.New(clusterDialer, conf, srvConf, srv, registrar)
 		consenters["etcdraft"] = raftConsenter
+		// 2019.01.14 by vito.he to support  tmpbft
+		consenters["tendermintpbft"] = tendermintpbft.New()
 	}
 	registrar.Initialize(consenters)
 	return registrar
