@@ -1,0 +1,6 @@
+=============== Jan 11, 2019 (CST) ===============
+18:22:25.340665 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+18:22:25.341328 db@open opening
+18:22:25.343523 version@stat F·[] S·0B[] Sc·[]
+18:22:25.343750 db@janitor F·2 G·0
+18:22:25.343776 db@open done T·2.433519ms

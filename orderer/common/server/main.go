@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hyperledger/fabric/orderer/consensus/tendermintpbft"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -354,7 +355,7 @@ func initializeBootstrapChannel(genesisBlock *cb.Block, lf blockledger.Factory) 
 }
 
 func isClusterType(_ *cb.Block) bool {
-	return false
+	return true
 }
 
 func initializeGrpcServer(conf *localconfig.TopLevel, serverConfig comm.ServerConfig) *comm.GRPCServer {
@@ -406,6 +407,7 @@ func initializeMultichannelRegistrar(bootstrapBlock *cb.Block,
 	consenters["kafka"], kafkaMetrics = kafka.New(conf.Kafka, metricsProvider)
 	// Note, we pass a 'nil' channel here, we could pass a channel that
 	// closes if we wished to cleanup this routine on exit.
+	consenters["tendermintpbft"] = tendermintpbft.New()
 	go kafkaMetrics.PollGoMetricsUntilStop(time.Minute, nil)
 	if isClusterType(bootstrapBlock) {
 		raftConsenter := etcdraft.New(clusterDialer, conf, srvConf, srv, registrar)
