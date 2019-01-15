@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"github.com/hyperledger/fabric/orderer/consensus"
 	cb "github.com/hyperledger/fabric/protos/common"
-	"github.com/hyperledger/fabric/protos/utils"
 	"github.com/tendermint/tendermint/abci/types"
+	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/version"
 	"strconv"
 	"time"
-	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
@@ -24,7 +23,7 @@ var (
 const (
 	CodeTypeOK            uint32 = 0
 	CodeTypeEncodingError uint32 = 1
-	CodeTypeBadNonce      uint32 = 2
+	CodeTypeMsgInvalid       uint32 = 2
 	CodeTypeUnauthorized  uint32 = 3
 	CodeTypeUnknownError  uint32 = 4
 )
@@ -39,6 +38,7 @@ type FabricStoreApplication struct {
 	sendChan chan *message
 	types.BaseApplication
 	chainSupports  map[string]consensus.ConsenterSupport
+	timer map [string]<-chan time.Time
 }
 type State struct {
 	db      dbm.DB
@@ -78,12 +78,35 @@ func NewFabricStoreApplication(dbDir string) *FabricStoreApplication {
 
 	state := loadState(db)
 
-	app := &FabricStoreApplication{state:state,sendChan:make(chan *message),exitChan:make(chan struct{}),chainSupports:make(map[string]consensus.ConsenterSupport)}
+	app := &FabricStoreApplication{state:state,sendChan:make(chan *message),exitChan:make(chan struct{}),chainSupports:make(map[string]consensus.ConsenterSupport),timer: make(map[string]<-chan time.Time)}
 	return app
 }
 
 func  (app *FabricStoreApplication) addChain(ch consensus.ConsenterSupport){
 	app.chainSupports[ch.ChainID()] = ch
+	app.timer[ch.ChainID()] = nil
+	go func() {
+		for {
+			select {
+			case <-app.timer[ch.ChainID()]:
+				//clear the timer
+				app.timer[ch.ChainID()] = nil
+
+				batch := ch.BlockCutter().Cut()
+				if len(batch) == 0 {
+					logger.Info("Batch timer expired with no pending requests, this might indicate a bug")
+					continue
+				}
+				logger.Debug("Batch timer expired, creating block")
+				block := ch.CreateNextBlock(batch)
+				ch.WriteBlock(block, nil)
+			case <-app.exitChan:
+				logger.Debug("Exiting")
+				return
+
+			}
+		}
+	}()
 }
 func  (app *FabricStoreApplication) start(){
 	go app.main()
@@ -100,6 +123,42 @@ func (app *FabricStoreApplication) halt() {
 		close(app.exitChan)
 	}
 }
+
+func (app *FabricStoreApplication) CheckTx(tx []byte) types.ResponseCheckTx {
+
+	msg := &message{}
+	newBuffer :=bytes.NewBuffer(tx)
+	dec := gob.NewDecoder(newBuffer)
+	err := dec.Decode(&msg)
+	if err != nil {
+		logger.Error("gob.Decoder err:"+err.Error())
+		return types.ResponseCheckTx{Code: CodeTypeMsgInvalid}
+	}
+
+   	support := app.chainSupports[string(msg.ChainId)]
+   	//加tx有效性校验
+	if msg.ConfigMsg == nil{
+
+			 _,err = support.ProcessNormalMsg(msg.NormalMsg)
+		fmt.Println("2")
+			if err != nil {
+				logger.Error("Discarding bad normal message: %s", err)
+				return types.ResponseCheckTx{Code: CodeTypeMsgInvalid}
+
+		}
+	} else{
+			_, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
+			if err != nil {
+				logger.Error("Discarding bad config message: %s", err)
+				return types.ResponseCheckTx{Code: CodeTypeMsgInvalid}
+			}
+
+	}
+
+
+	return types.ResponseCheckTx{Code: CodeTypeOK}
+}
+
 func (app *FabricStoreApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	return types.ResponseInfo{
 		Data:       fmt.Sprintf("{\"size\":%v}", app.state.Size),
@@ -110,6 +169,7 @@ func (app *FabricStoreApplication) Info(req types.RequestInfo) (resInfo types.Re
 	}
 
 }
+
 func getKey(app *FabricStoreApplication,msg  *message)(string){
 	return string(msg.ChainId)+":"+ strconv.Itoa(int(app.chainSupports[string(msg.ChainId)].Height())+1)
 }
@@ -125,6 +185,9 @@ func (app *FabricStoreApplication) DeliverTx(tx []byte) types.ResponseDeliverTx 
 		logger.Error("gob.Decoder err:"+err.Error())
 		return types.ResponseDeliverTx{Code:CodeTypeEncodingError}
 	}
+	//之所以在这里将tx交还给fabric，是因为fabric本身有批次的逻辑。什么时候真正出块还是由fabric来决定
+	//这里tendermint的state只记录fabric的tx。fabric的追块，也只是通过tendermint传递tx。tm的块和fabric的块，概念不同。
+	//这里弱化了tm中块的很多概念，tm中块起到的作用： 存储fabric的tx，用于fabric追块。
 	app.sendChan <- msg
 
 	key := getKey(app,msg)
@@ -145,26 +208,17 @@ func (app *FabricStoreApplication) Commit() types.ResponseCommit {
 }
 
 func (app *FabricStoreApplication) main() {
-	var timer <-chan time.Time
-	var err error
 
 	for {
 
-		err = nil
 		select {
 		case msg := <-app.sendChan:
-			support :=  app.chainSupports[string(msg.ChainId)]
-			seq := support.Sequence()
+			chainId := string(msg.ChainId)
+			support :=  app.chainSupports[chainId]
 			if msg.ConfigMsg == nil {
 				// NormalMsg
 				fmt.Println("come in NormalMsg。。。")
-				if msg.ConfigSeq < seq {
-					_, err = support.ProcessNormalMsg(msg.NormalMsg)
-					if err != nil {
-						logger.Error("Discarding bad normal message: %s", err)
-						continue
-					}
-				}
+
 				batches, pending := support.BlockCutter().Ordered(msg.NormalMsg)
 
 				for _, batch := range batches {
@@ -173,12 +227,12 @@ func (app *FabricStoreApplication) main() {
 				}
 
 				switch {
-				case timer != nil && !pending:
+				case app.timer[chainId] != nil && !pending:
 					// Timer is already running but there are no messages pending, stop the timer
-					timer = nil
-				case timer == nil && pending:
+					app.timer[chainId] = nil
+				case app.timer[chainId] == nil && pending:
 					// Timer is not already running and there are messages pending, so start it
-					timer = time.After(support.SharedConfig().BatchTimeout())
+					app.timer[chainId] = time.After(support.SharedConfig().BatchTimeout())
 					logger.Info("Just began %s batch timer", support.SharedConfig().BatchTimeout().String())
 				default:
 					// Do nothing when:
@@ -189,16 +243,11 @@ func (app *FabricStoreApplication) main() {
 			} else {
 				// ConfigMsg
 				fmt.Println("come in ConfigMsg。。。")
-				fmt.Println("msg.ConfigMsg:"+msg.ConfigMsg.String())
-				//fmt.Println("payload.Header:"+string(msg.ConfigMsg.Payload))
-				payload,err:= utils.UnmarshalPayload(msg.ConfigMsg.Payload)
-				fmt.Println("payload.Header:"+payload.Header.String())
-				if msg.ConfigSeq < seq {
-					msg.ConfigMsg, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
-					if err != nil {
-						logger.Error("Discarding bad config message: %s", err)
-						continue
-					}
+				var err error
+				msg.ConfigMsg, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
+				if err != nil {
+					logger.Error("Discarding bad config message: %s", err)
+					continue
 				}
 				batch := support.BlockCutter().Cut()
 				if batch != nil {
@@ -208,20 +257,9 @@ func (app *FabricStoreApplication) main() {
 
 				block := support.CreateNextBlock([]*cb.Envelope{msg.ConfigMsg})
 				support.WriteConfigBlock(block, nil)
-				timer = nil
+				app.timer[chainId] = nil
 			}
-		//case <-timer:
-		//	//clear the timer
-		//	timer = nil
-		//
-		//	batch := app.support.BlockCutter().Cut()
-		//	if len(batch) == 0 {
-		//		logger.Info("Batch timer expired with no pending requests, this might indicate a bug")
-		//		continue
-		//	}
-		//	logger.Debug("Batch timer expired, creating block")
-		//	block := app.support.CreateNextBlock(batch)
-		//	app.support.WriteBlock(block, nil)
+
 		case <-app.exitChan:
 			logger.Debug("Exiting")
 			return

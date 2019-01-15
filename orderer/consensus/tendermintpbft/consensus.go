@@ -258,14 +258,7 @@ func (ch *chain) Configure(config *cb.Envelope, ConfigSeq uint64) error {
 		return errors.New(fmt.Sprint("encode error:", err))
 	}
 	tx =  byteBuffer.Bytes()
-	//tx,err =cdc.MarshalJSON(&message{
-	//	ConfigSeq: ConfigSeq,
-	//	ConfigMsg: config,
-	//	Support:ch.support,
-	//})
-	//if err != nil {
-	//	return errors.New(fmt.Sprint("cdc.MarshalJSON error:", err))
-	//}
+
 	err = ch.tmNode.node.MempoolReactor().Mempool.CheckTx(tx, func(res *abci.Response) {
 		//TODO
 	})

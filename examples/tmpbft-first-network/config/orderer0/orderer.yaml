@@ -54,9 +54,9 @@ General:
     Cluster:
         # ClientCertificate governs the file location of the client TLS certificate
         # used to establish mutual TLS connections with other ordering service nodes.
-        ClientCertificate: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer0.example.com/tls/server.crt
+        ClientCertificate: tls/server.crt
         # ClientPrivateKey governs the file location of the private key of the client TLS certificate.
-        ClientPrivateKey: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer0.example.com/tls/server.key
+        ClientPrivateKey: tls/server.key
         # DialTimeout governs the maximum duration of time after which connection
         # attempts are considered as failed.
         DialTimeout: 5s
@@ -156,7 +156,7 @@ FileLedger:
     # Location: The directory to store the blocks in.
     # NOTE: If this is unset, a new temporary location will be chosen every time
     # the orderer is restarted, using the prefix specified by Prefix.
-    Location: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/production/orderer0
+    Location: /Users/hunter/go/src/github.com/hyperledger/fabric/examples/tmpbft-first-network/production/orderer0
 
     # The prefix to use when generating a ledger directory in temporary space.
     # Otherwise, this value is ignored.
