@@ -7,15 +7,13 @@ version: '2'
 
 services:
 
-  orderer0.example.com:
-    container_name: orderer0.example.com
+  orderer.example.com:
     image: hyperledger/fabric-orderer:$IMAGE_TAG
     environment:
       - ORDERER_GENERAL_LOGLEVEL=INFO
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
       # enabled TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
@@ -26,98 +24,6 @@ services:
       - TM_LOG_LEVEL=error
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: orderer
-    volumes:
-    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer0.example.com/msp:/var/hyperledger/orderer/msp
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer0.example.com/tls/:/var/hyperledger/orderer/tls
-    - orderer0.example.com:/var/hyperledger/production/orderer
-    - ~/.tendermint0:/var/hyperledger/orderer/tendermint
-    ports:
-      - 7050:7050
-
-  orderer1.example.com:
-    container_name: orderer1.example.com
-    image: hyperledger/fabric-orderer:$IMAGE_TAG
-    environment:
-    - ORDERER_GENERAL_LOGLEVEL=INFO
-    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-    - ORDERER_GENERAL_GENESISMETHOD=file
-    - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-    - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
-    # enabled TLS
-    - ORDERER_GENERAL_TLS_ENABLED=true
-    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
-    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
-    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-    - TM_HOME=/var/hyperledger/orderer/tendermint
-    - TM_LOG_LEVEL=error
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
-    command: orderer
-    volumes:
-    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/msp:/var/hyperledger/orderer/msp
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/tls/:/var/hyperledger/orderer/tls
-    - orderer1.example.com:/var/hyperledger/production/orderer
-    - ~/.tendermint1:/var/hyperledger/orderer/tendermint
-    ports:
-    - 8050:7050
-
-  orderer2.example.com:
-    container_name: orderer2.example.com
-    image: hyperledger/fabric-orderer:$IMAGE_TAG
-    environment:
-    - ORDERER_GENERAL_LOGLEVEL=INFO
-    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-    - ORDERER_GENERAL_GENESISMETHOD=file
-    - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-    - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
-    # enabled TLS
-    - ORDERER_GENERAL_TLS_ENABLED=true
-    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
-    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
-    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-    - TM_HOME=/var/hyperledger/orderer/tendermint
-    - TM_LOG_LEVEL=error
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
-    command: orderer
-    volumes:
-    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/msp:/var/hyperledger/orderer/msp
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/:/var/hyperledger/orderer/tls
-    - orderer2.example.com:/var/hyperledger/production/orderer
-    - ~/.tendermint2:/var/hyperledger/orderer/tendermint
-    ports:
-    - 9050:7050
-
-  orderer3.example.com:
-    container_name: orderer3.example.com
-    image: hyperledger/fabric-orderer:$IMAGE_TAG
-    environment:
-    - ORDERER_GENERAL_LOGLEVEL=INFO
-    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-    - ORDERER_GENERAL_GENESISMETHOD=file
-    - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-    - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
-    # enabled TLS
-    - ORDERER_GENERAL_TLS_ENABLED=true
-    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
-    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
-    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-    - TM_HOME=/var/hyperledger/orderer/tendermint
-    - TM_LOG_LEVEL=error
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
-    command: orderer
-    volumes:
-    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp:/var/hyperledger/orderer/msp
-    - ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/:/var/hyperledger/orderer/tls
-    - orderer3.example.com:/var/hyperledger/production/orderer
-    - ~/.tendermint3:/var/hyperledger/orderer/tendermint
-    ports:
-    - 10050:7050
 
   peer0.org1.example.com:
     container_name: peer0.org1.example.com

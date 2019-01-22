@@ -40,7 +40,78 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: "OR('OrdererMSP.admin')"
+    - &OrdererOrgA
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: OrgA
 
+        # ID to load the MSP definition as
+        ID: OrgAMSP
+
+        # MSPDir is the filesystem path which contains the MSP configuration
+        MSPDir: crypto-config/ordererOrganizations/orgA.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrgAMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrgAMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrgAMSP.admin')"
+    - &OrdererOrgB
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: OrgB
+
+        # ID to load the MSP definition as
+        ID: OrgBMSP
+
+        # MSPDir is the filesystem path which contains the MSP configuration
+        MSPDir: crypto-config/ordererOrganizations/orgB.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrgBMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrgBMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrgBMSP.admin')"    
+    - &OrdererOrgC
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: OrgC
+
+        # ID to load the MSP definition as
+        ID: OrgCMSP
+
+        # MSPDir is the filesystem path which contains the MSP configuration
+        MSPDir: crypto-config/ordererOrganizations/orgC.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrgCMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrgCMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrgCMSP.admin')"    
     - &Org1
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -208,10 +279,10 @@ Orderer: &OrdererDefaults
     OrdererType: tendermintpbft
 
     Addresses:
-        - orderer0.example.com:7050
-        - orderer1.example.com:7050
-        - orderer2.example.com:7050
-        - orderer3.example.com:7050
+        - orderer0.orgA.example.com:7050
+        - orderer1.orgA.example.com:7050
+        - orderer0.orgB.example.com:7050
+        - orderer0.orgC.example.com:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -307,7 +378,9 @@ Profiles:
         Orderer:
             <<: *OrdererDefaults
             Organizations:
-                - *OrdererOrg
+                - *OrdererOrgA
+                - *OrdererOrgB
+                - *OrdererOrgC
             Capabilities:
                 <<: *OrdererCapabilities
         Consortiums:

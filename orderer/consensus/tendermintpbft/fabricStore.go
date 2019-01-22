@@ -167,20 +167,20 @@ func (app *FabricStoreApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	if msg.ConfigMsg == nil{
 
 			 _,err = support.ProcessNormalMsg(msg.NormalMsg)
-		fmt.Println("2")
 			if err != nil {
 				logger.Error("Discarding bad normal message: %s", err)
 				return types.ResponseCheckTx{Code: CodeTypeMsgInvalid}
 
 		}
-	} else{
-			_, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
-			if err != nil {
-				logger.Error("Discarding bad config message: %s", err)
-				return types.ResponseCheckTx{Code: CodeTypeMsgInvalid}
-			}
-
 	}
+   	//else{
+	//		_, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
+	//		if err != nil {
+	//			logger.Error("Discarding bad config message: %s", err)
+	//			return types.ResponseCheckTx{Code: CodeTypeMsgInvalid}
+	//		}
+	//
+	//}
 
 
 	return types.ResponseCheckTx{Code: CodeTypeOK}
@@ -232,8 +232,17 @@ func (app *FabricStoreApplication) Commit() types.ResponseCommit {
 		if app.msgQ[i].len()>0{
 			var batches []*cb.Envelope
 			app.msgQ[i].popAndDo(func(msg *message) {
+				seq := support.Sequence()
+				var err error
 				if msg.ConfigMsg !=nil{
-					fmt.Println(support.ChainID()+"-create config block...")
+					logger.Info(support.ChainID()+"-create config block...")
+					if msg.ConfigSeq < seq {
+						msg.ConfigMsg, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
+						if err != nil {
+							logger.Error("Discarding bad config message: %s", err)
+							panic(err)
+						}
+					}
 					block := support.CreateNextBlock([]*cb.Envelope{msg.ConfigMsg})
 					support.WriteConfigBlock(block, nil)
 				}else{

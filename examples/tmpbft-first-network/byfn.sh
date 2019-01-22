@@ -154,12 +154,16 @@ function networkUp() {
     generateCerts
     replacePrivateKey
     generateChannelArtifacts
-  for node in 0 1 2 3; do
-  dest="./crypto-config/ordererOrganizations/example.com/orderers/orderer$node.example.com/"
-  cp ./config/orderer$node/orderer.yaml $dest
-  cp ./configtx.yaml $dest
+  
+for org in A B C ;do 
+  for node in 0 1 ; do
+  dest="./crypto-config/ordererOrganizations/org$org.example.com/orderers/orderer$node.org$org.example.com/"
+  # cp ./config/orderer$node/orderer.yaml $dest
+  # cp ./configtx.yaml $dest
   cp ./channel-artifacts/genesis.block $dest
  done
+done
+
   fi
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
     IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
@@ -261,13 +265,14 @@ function networkDown() {
     # remove the docker-compose yaml file that was customized to the example
     rm -f docker-compose-e2e.yaml
     rm -rf production/*
-
- for node in 0 1 2 3; do
-  dest=~/.tendermint$node
+for org in A B C; do
+ for node in 0 1; do
+  dest=~/.tendermint$node-$org
   rm -rf $dest/data
   rm $dest/config/priv_validator.json
   cp $dest/config/priv_validator.json_bak $dest/config/priv_validator.json
  done
+done
   fi
 }
 
