@@ -209,6 +209,9 @@ Orderer: &OrdererDefaults
 
     Addresses:
         - orderer0.example.com:7050
+        - orderer1.example.com:7050
+        - orderer2.example.com:7050
+        - orderer3.example.com:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -233,16 +236,7 @@ Orderer: &OrdererDefaults
         # NOTE: Use IP:port notation
         Brokers:
             - 127.0.0.1:9092
-    Etcdraft: 
-        Consenters:
-            - Host: orderer0.example.com
-              Port: 7050
-              ClientTlsCert: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer0.example.com/tls/server.crt
-              ServerTlsCert: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer0.example.com/tls/server.crt       
-            - Host: orderer1.example.com
-              Port: 8050
-              ClientTlsCert: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/tls/server.crt
-              ServerTlsCert: /Users/hunter/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/tls/server.crt 
+
     # Organizations is the list of orgs which are defined as participants on
     # the orderer side of the network
     Organizations:

@@ -8,9 +8,6 @@ package msgprocessor
 
 import (
 	"errors"
-	"fmt"
-	"strconv"
-
 	ab "github.com/hyperledger/fabric/protos/common"
 )
 
@@ -58,11 +55,9 @@ func NewRuleSet(rules []Rule) *RuleSet {
 
 // Apply applies the rules given for this set in order, returning nil on valid or err on invalid
 func (rs *RuleSet) Apply(message *ab.Envelope) error {
-	for i, rule := range rs.rules {
-		fmt.Println("i:"+strconv.Itoa(i))
+	for _, rule := range rs.rules {
 		err := rule.Apply(message)
 		if err != nil {
-			fmt.Println("err occur:"+err.Error())
 			return err
 		}
 	}

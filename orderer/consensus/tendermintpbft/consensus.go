@@ -32,9 +32,6 @@ import (
 
 var logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-func init() {
-	logger = log.NewFilter(logger,log.AllowDebug())
-}
 
 type consenter struct{}
 
@@ -78,10 +75,20 @@ func (n *tendermintNode)initialize(  support consensus.ConsenterSupport)(error){
 	config := &cfg.Config{}
 	viper.Reset()
 	vip := viper.New()
-	//vip.SetConfigFile("/Users/hunter/.tendermint/config/config.toml")
 
-	if vip.BindEnv("TM_HOME") ==nil {
-		configFile := vip.Get("TM_HOME").(string)+"config/config.toml"
+	if vip.BindEnv("TM_LOG_LEVEL") == nil && vip.Get("TM_LOG_LEVEL")!=nil{
+		levelOpt ,err :=log.AllowLevel(vip.Get("TM_LOG_LEVEL").(string))
+		if err!=nil{
+			return  err
+		}
+		logger = log.NewFilter(logger,levelOpt)
+	}else{
+		//else only allow error
+		logger = log.NewFilter(logger,log.AllowError())
+	}
+
+	if vip.BindEnv("TM_HOME") ==nil &&  vip.Get("TM_HOME")!=nil{
+		configFile := vip.Get("TM_HOME").(string)+"/config/config.toml"
 		vip.SetConfigFile(configFile)
 		vip.SetConfigType("toml")
 		config.RootDir = vip.Get("TM_HOME").(string)
@@ -154,25 +161,16 @@ type chain struct {
 	support          consensus.ConsenterSupport
 }
 
-type baseMessage interface{
-	validateBasic()error
-}
+
 type message struct {
 	ConfigSeq uint64
 	NormalMsg *cb.Envelope
 	ConfigMsg *cb.Envelope
 	ChainId   []byte
 }
-func (msg message)validateBasic()(error){
-	return nil
-}
 
 
-
-// New creates a new consenter for the solo consensus scheme.
-// The solo consensus scheme is very simple, and allows only one consenter for a given chain (this process).
-// It accepts messages being delivered via Order/Configure, orders them, and then uses the blockcutter to form the messages
-// into blocks before writing to the given ledger
+// New creates a new consenter for the tendermintpbft
 func New() consensus.Consenter {
 	return &consenter{}
 }

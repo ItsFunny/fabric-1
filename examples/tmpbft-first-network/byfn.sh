@@ -157,7 +157,7 @@ function networkUp() {
   for node in 0 1 2 3; do
   dest="./crypto-config/ordererOrganizations/example.com/orderers/orderer$node.example.com/"
   cp ./config/orderer$node/orderer.yaml $dest
-  cp ./base/configtx.yaml $dest
+  cp ./configtx.yaml $dest
   cp ./channel-artifacts/genesis.block $dest
  done
   fi
@@ -397,8 +397,9 @@ function generateChannelArtifacts() {
   echo "##########################################################"
   # Note: For some unknown reason (at least for now) the block file can't be
   # named orderer.genesis.block or the orderer will fail to launch!
+  echo $FABRIC_CFG_PATH
   set -x
-  configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
+  configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block -configPath /Users/hunter/go/src/github.com/hyperledger/fabric/examples/tmpbft-first-network/
   res=$?
   set +x
   if [ $res -ne 0 ]; then

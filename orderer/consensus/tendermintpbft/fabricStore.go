@@ -2,6 +2,7 @@ package tendermintpbft
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/version"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -32,11 +34,57 @@ const (
 //---------------------------------------------------
 
 
+type queue struct{
+	q *list.List
+	sync.Mutex
+}
+func newQueue()(*queue){
+	return &queue{q:list.New()}
+}
+func (q *queue)push(i *message){
+	q.Lock()
+	q.q.PushBack(i)
+	q.Unlock()
+}
+func (q *queue)popAndDo(f func(envelope *message))(){
+	q.Lock()
+	for e := q.q.Front(); e != nil; e = e.Next() {
+		f(e.Value.(*message))
+	}
+	//clear the list
+	q.q.Init()
+	q.Unlock()
+}
+func (q *queue)pop()(*message){
+	q.Lock()
+	e:= q.q.Front()
+	q.q.Remove(e)
+	q.Unlock()
+	return e.Value.(*message)
+}
+func (q *queue)toSlice()([]*message){
+	q.Lock()
+	slice := make([]*message,q.q.Len())
+	for e := q.q.Front(); e != nil; e = e.Next() {
+		slice =append(slice, e.Value.(*message))
+	}
+	q.Unlock()
+	return slice
+}
+func (q *queue)len()(int){
+	return q.q.Len()
+}
+func (q *queue)clear(){
+	q.q.Init()
+}
+
+
 type FabricStoreApplication struct {
 	state State
 	exitChan chan struct{}
 	sendChan chan *message
 	types.BaseApplication
+	msgQ map[string]*queue
 	chainSupports  map[string]consensus.ConsenterSupport
 	timer map [string]<-chan time.Time
 }
@@ -78,38 +126,17 @@ func NewFabricStoreApplication(dbDir string) *FabricStoreApplication {
 
 	state := loadState(db)
 
-	app := &FabricStoreApplication{state:state,sendChan:make(chan *message),exitChan:make(chan struct{}),chainSupports:make(map[string]consensus.ConsenterSupport),timer: make(map[string]<-chan time.Time)}
+	app := &FabricStoreApplication{msgQ:make(map[string]*queue),state:state,sendChan:make(chan *message),exitChan:make(chan struct{}),chainSupports:make(map[string]consensus.ConsenterSupport),timer: make(map[string]<-chan time.Time)}
 	return app
 }
 
 func  (app *FabricStoreApplication) addChain(ch consensus.ConsenterSupport){
 	app.chainSupports[ch.ChainID()] = ch
 	app.timer[ch.ChainID()] = nil
-	go func() {
-		for {
-			select {
-			case <-app.timer[ch.ChainID()]:
-				//clear the timer
-				app.timer[ch.ChainID()] = nil
-
-				batch := ch.BlockCutter().Cut()
-				if len(batch) == 0 {
-					logger.Info("Batch timer expired with no pending requests, this might indicate a bug")
-					continue
-				}
-				logger.Debug("Batch timer expired, creating block")
-				block := ch.CreateNextBlock(batch)
-				ch.WriteBlock(block, nil)
-			case <-app.exitChan:
-				logger.Debug("Exiting")
-				return
-
-			}
-		}
-	}()
+	app.msgQ[ch.ChainID()] = newQueue()
 }
 func  (app *FabricStoreApplication) start(){
-	go app.main()
+	//go app.main()
 }
 
 func (app *FabricStoreApplication) errored() <-chan struct{} {
@@ -175,7 +202,7 @@ func getKey(app *FabricStoreApplication,msg  *message)(string){
 }
 // tx is either "key=value" or just arbitrary bytes
 func (app *FabricStoreApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
-	fmt.Println("come in DeliverTx。。。")
+	//fmt.Println("come in DeliverTx。。。")
 	//fmt.Println("tx:"+string(tx))
 	msg := &message{}
 	newBuffer :=bytes.NewBuffer(tx)
@@ -188,8 +215,10 @@ func (app *FabricStoreApplication) DeliverTx(tx []byte) types.ResponseDeliverTx 
 	//之所以在这里将tx交还给fabric，是因为fabric本身有批次的逻辑。什么时候真正出块还是由fabric来决定
 	//这里tendermint的state只记录fabric的tx。fabric的追块，也只是通过tendermint传递tx。tm的块和fabric的块，概念不同。
 	//这里弱化了tm中块的很多概念，tm中块起到的作用： 存储fabric的tx，用于fabric追块。
-	app.sendChan <- msg
+	//app.sendChan <- msg
 
+	app.msgQ[string(msg.ChainId)].push(msg)
+	
 	key := getKey(app,msg)
 
 	app.state.db.Set([]byte(key), tx)
@@ -199,6 +228,29 @@ func (app *FabricStoreApplication) DeliverTx(tx []byte) types.ResponseDeliverTx 
 }
 func (app *FabricStoreApplication) Commit() types.ResponseCommit {
 	// Using a memdb - just return the big endian size of the db
+	for i,support :=range app.chainSupports{
+		if app.msgQ[i].len()>0{
+			var batches []*cb.Envelope
+			app.msgQ[i].popAndDo(func(msg *message) {
+				if msg.ConfigMsg !=nil{
+					fmt.Println(support.ChainID()+"-create config block...")
+					block := support.CreateNextBlock([]*cb.Envelope{msg.ConfigMsg})
+					support.WriteConfigBlock(block, nil)
+				}else{
+					batches = append(batches, msg.NormalMsg)
+				}
+
+			})
+
+			if len(batches)>0{
+				fmt.Println(support.ChainID()+"-create normal block...")
+				block := support.CreateNextBlock(batches)
+				support.WriteBlock(block, nil)
+			}
+
+		}
+		
+	}
 	appHash := make([]byte, 8)
 	binary.PutVarint(appHash, app.state.Size)
 	app.state.AppHash = appHash
@@ -206,63 +258,63 @@ func (app *FabricStoreApplication) Commit() types.ResponseCommit {
 	saveState(app.state)
 	return types.ResponseCommit{Data: appHash}
 }
-
-func (app *FabricStoreApplication) main() {
-
-	for {
-
-		select {
-		case msg := <-app.sendChan:
-			chainId := string(msg.ChainId)
-			support :=  app.chainSupports[chainId]
-			if msg.ConfigMsg == nil {
-				// NormalMsg
-				fmt.Println("come in NormalMsg。。。")
-
-				batches, pending := support.BlockCutter().Ordered(msg.NormalMsg)
-
-				for _, batch := range batches {
-					block := support.CreateNextBlock(batch)
-					support.WriteBlock(block, nil)
-				}
-
-				switch {
-				case app.timer[chainId] != nil && !pending:
-					// Timer is already running but there are no messages pending, stop the timer
-					app.timer[chainId] = nil
-				case app.timer[chainId] == nil && pending:
-					// Timer is not already running and there are messages pending, so start it
-					app.timer[chainId] = time.After(support.SharedConfig().BatchTimeout())
-					logger.Info("Just began %s batch timer", support.SharedConfig().BatchTimeout().String())
-				default:
-					// Do nothing when:
-					// 1. Timer is already running and there are messages pending
-					// 2. Timer is not set and there are no messages pending
-				}
-
-			} else {
-				// ConfigMsg
-				fmt.Println("come in ConfigMsg。。。")
-				var err error
-				msg.ConfigMsg, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
-				if err != nil {
-					logger.Error("Discarding bad config message: %s", err)
-					continue
-				}
-				batch := support.BlockCutter().Cut()
-				if batch != nil {
-					block := support.CreateNextBlock(batch)
-					support.WriteBlock(block, nil)
-				}
-
-				block := support.CreateNextBlock([]*cb.Envelope{msg.ConfigMsg})
-				support.WriteConfigBlock(block, nil)
-				app.timer[chainId] = nil
-			}
-
-		case <-app.exitChan:
-			logger.Debug("Exiting")
-			return
-		}
-	}
-}
+//
+//func (app *FabricStoreApplication) main() {
+//
+//	for {
+//
+//		select {
+//		case msg := <-app.sendChan:
+//			chainId := string(msg.ChainId)
+//			support :=  app.chainSupports[chainId]
+//			if msg.ConfigMsg == nil {
+//				// NormalMsg
+//				fmt.Println("come in NormalMsg。。。")
+//
+//				batches, pending := support.BlockCutter().Ordered(msg.NormalMsg)
+//
+//				for _, batch := range batches {
+//					block := support.CreateNextBlock(batch)
+//					support.WriteBlock(block, nil)
+//				}
+//
+//				switch {
+//				case app.timer[chainId] != nil && !pending:
+//					// Timer is already running but there are no messages pending, stop the timer
+//					app.timer[chainId] = nil
+//				case app.timer[chainId] == nil && pending:
+//					// Timer is not already running and there are messages pending, so start it
+//					app.timer[chainId] = time.After(support.SharedConfig().BatchTimeout())
+//					logger.Info("Just began %s batch timer", support.SharedConfig().BatchTimeout().String())
+//				default:
+//					// Do nothing when:
+//					// 1. Timer is already running and there are messages pending
+//					// 2. Timer is not set and there are no messages pending
+//				}
+//
+//			} else {
+//				// ConfigMsg
+//				fmt.Println("come in ConfigMsg。。。")
+//				var err error
+//				msg.ConfigMsg, _, err = support.ProcessConfigMsg(msg.ConfigMsg)
+//				if err != nil {
+//					logger.Error("Discarding bad config message: %s", err)
+//					continue
+//				}
+//				batch := support.BlockCutter().Cut()
+//				if batch != nil {
+//					block := support.CreateNextBlock(batch)
+//					support.WriteBlock(block, nil)
+//				}
+//
+//				block := support.CreateNextBlock([]*message{msg.ConfigMsg})
+//				support.WriteConfigBlock(block, nil)
+//				app.timer[chainId] = nil
+//			}
+//
+//		case <-app.exitChan:
+//			logger.Debug("Exiting")
+//			return
+//		}
+//	}
+//}
