@@ -35,7 +35,7 @@ var logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
 type consenter struct{}
 
-var tmNode *tendermintNode = &tendermintNode{running:false,initialized:false,mut:sync.Mutex{}}
+var tmNode  = &tendermintNode{running:false,initialized:false,mut:sync.Mutex{}}
 
 
 type tendermintNode struct{
