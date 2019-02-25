@@ -25,7 +25,7 @@ cd ./examples/tmpbft-first-network
 
 sh byfn.sh up -i 1.4.0
 
-##注意：
+## 注意：
 
 源代码中使用的viper版本有bug，需要升级到最新版本。且最新版本中也有bug，已经有人给出merge request，但是还未合并，所以作者手动做了代码修改。详情见
 
