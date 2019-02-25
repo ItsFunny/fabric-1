@@ -28,7 +28,7 @@
 
 # prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
 # this may be commented out to resolve installed version of tools if desired
-export PATH=${PWD}/bin:${PWD}:$PATH
+export PATH=${PWD}/../../.build/bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
 
@@ -77,7 +77,7 @@ function askProceed() {
     ;;
   n | N)
     echo "exiting..."
-    exit 1
+    exit 1Could not find profile
     ;;
   *)
     echo "invalid response"
@@ -404,7 +404,7 @@ function generateChannelArtifacts() {
   # named orderer.genesis.block or the orderer will fail to launch!
   echo $FABRIC_CFG_PATH
   set -x
-  configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block -configPath /Users/hunter/go/src/github.com/hyperledger/fabric/examples/tmpbft-first-network/
+  configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
   res=$?
   set +x
   if [ $res -ne 0 ]; then
